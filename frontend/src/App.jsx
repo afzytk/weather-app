@@ -1,3 +1,9 @@
+import Home from "./pages/Home";
+
 export default function App() {
-  return <h1 className="text-4xl font-bold">Weather app</h1>;
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-900">
+      <Home />
+    </div>
+  );
 }
