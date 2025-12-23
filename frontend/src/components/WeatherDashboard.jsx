@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import {
+  X,
   Thermometer,
   Droplets,
   Wind,
@@ -10,6 +12,11 @@ import {
   Cloud,
 } from "lucide-react";
 import { getWeather, getCitySuggestions } from "../api/weather";
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0 },
+};
 
 export default function WeatherDashboard() {
   const [city, setCity] = useState("");
@@ -40,39 +47,42 @@ export default function WeatherDashboard() {
     }
   };
 
+  const clearSearch = () => {
+    setCity("");
+    setSuggestions([]);
+    setWeather(null);
+    setError("");
+  };
+
   return (
-    <section
-      className="
-        w-full max-w-6xl rounded-3xl
-        bg-white/70 dark:bg-white/5
-        backdrop-blur-xl
-        border border-black/10 dark:border-white/10
-        p-10 shadow-xl
-      "
+    <motion.section
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="w-full max-w-6xl rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 p-10 shadow-xl"
     >
-      {/* SEARCH */}
       <div className="relative mb-10">
         <input
+          id="city-search"
+          name="city"
           value={city}
           onChange={(e) => onType(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && search()}
           placeholder="Search city"
-          className="
-            w-full rounded-2xl px-6 py-4 text-lg
-            bg-black/5 dark:bg-black/40
-            outline-none
-          "
+          className="w-full rounded-2xl px-6 py-4 pr-12 text-lg bg-black/40 outline-none"
         />
 
-        {suggestions.length > 0 && (
-          <ul
-            className="
-              absolute z-20 mt-2 w-full rounded-2xl
-              bg-white dark:bg-[#0b1020]
-              border border-black/10 dark:border-white/10
-              overflow-hidden
-            "
+        {city && (
+          <button
+            onClick={clearSearch}
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/10"
           >
+            <X className="h-5 w-5 text-white/60" />
+          </button>
+        )}
+
+        {suggestions.length > 0 && (
+          <ul className="absolute z-20 mt-2 w-full rounded-2xl bg-[#0a0d14] border border-white/10 overflow-hidden">
             {suggestions.map((c, i) => (
               <li
                 key={i}
@@ -80,10 +90,7 @@ export default function WeatherDashboard() {
                   setCity(`${c.name}, ${c.country}`);
                   search(`${c.name}, ${c.country}`);
                 }}
-                className="
-                  px-6 py-4 cursor-pointer
-                  hover:bg-black/5 dark:hover:bg-white/10
-                "
+                className="px-6 py-4 cursor-pointer hover:bg-white/10"
               >
                 {c.name}
                 {c.state ? `, ${c.state}` : ""} · {c.country}
@@ -93,13 +100,16 @@ export default function WeatherDashboard() {
         )}
       </div>
 
-      {loading && <p className="text-center opacity-60">Loading weather…</p>}
-
-      {error && <p className="text-center text-red-500">{error}</p>}
+      {loading && <p className="text-center text-white/60">Loading…</p>}
+      {error && <p className="text-center text-red-400">{error}</p>}
 
       {weather && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          {/* MAIN WEATHER */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-12"
+        >
           <div className="text-center">
             <h2 className="text-3xl font-semibold">
               {weather.city}, {weather.country}
@@ -112,12 +122,15 @@ export default function WeatherDashboard() {
             />
 
             <p className="text-7xl font-bold">{weather.temperature}°</p>
-
-            <p className="capitalize opacity-70">{weather.description}</p>
+            <p className="capitalize text-white/70">{weather.description}</p>
           </div>
 
-          {/* DETAILS */}
-          <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-6">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{ visible: { transition: { staggerChildren: 0.06 } } }}
+            className="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-6"
+          >
             <Info
               icon={Thermometer}
               label="Feels Like"
@@ -138,25 +151,23 @@ export default function WeatherDashboard() {
             <Info icon={Sunrise} label="Sunrise" value={weather.sunrise} />
             <Info icon={Sunset} label="Sunset" value={weather.sunset} />
             <Info icon={Cloud} label="Condition" value={weather.description} />
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
-    </section>
+    </motion.section>
   );
 }
 
 function Info({ icon: Icon, label, value }) {
   return (
-    <div
-      className="
-        rounded-2xl p-6
-        border border-black/10 dark:border-white/10
-        bg-black/5 dark:bg-white/5
-      "
+    <motion.div
+      variants={cardVariants}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="rounded-2xl p-6 border border-white/10 bg-white/5"
     >
-      <Icon className="h-6 w-6 mb-3 opacity-70" />
-      <p className="text-sm opacity-60">{label}</p>
+      <Icon className="h-6 w-6 mb-3 text-white/70" />
+      <p className="text-sm text-white/50">{label}</p>
       <p className="text-2xl font-semibold mt-1 capitalize">{value}</p>
-    </div>
+    </motion.div>
   );
 }
